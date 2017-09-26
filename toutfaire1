@@ -1,0 +1,147 @@
+
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+// definition broche de reglage de la luminosité dans le cas ou l'on souhaite la régler numériquement
+// sinon un bon vieux potentiometre a la place du pont en sortie de carte I2C
+const int PinLuminosite = 13 ;
+const int PinBouton = 0;
+int valPression = 0.0;
+int rapport =0;
+
+// Set the LCD address to 0x3F for a 20 chars and 4 line display
+LiquidCrystal_I2C lcd(0x3F,20,4);  // set the LCD address to 0x27 for a 20 chars and 4 line display       
+
+               
+//---------------- Fonction setup() ------------------------------
+void setup()
+{
+  pinMode(PinLuminosite, OUTPUT);
+  pinMode (PinBouton, INPUT);
+//  lcd.init();                      // initialize the lcd 
+  lcd.backlight();
+  lcd.setCursor(3,0);
+  lcd.print("Bonjour Bebert!");
+  lcd.setCursor(2,1);
+   analogWrite (PinLuminosite,120);  // luminosité de l'écran
+  // Initialize the serial port at a speed of 9600 baud
+  Serial.begin(115200);
+}
+
+
+//------------------ Fonction loop()  ----------------------------
+void loop() {
+SerialToScreen ();
+  delay(100);
+  lcd.clear();
+}
+//------------------- fonction millis écrivant le temps sur écran
+/*
+void MillisScreen ()
+{
+  int i=0;
+  // set the cursor to column 0, line 1
+  // (note: line 1 is the second row, since counting begins with 0):
+  lcd.setCursor(i,1);
+  // print the number of seconds since reset:
+  lcd.print (i);   //(millis() / 1000);
+  if (i==20 || i==0)
+  {inc=-inc;}
+  i=i+inc;
+  delay(500);
+}
+
+*/
+
+
+/*
+   Displays text sent over the serial port (e.g. from the Serial Monitor) on
+   an attached LCD.
+*/
+
+//------------------- fonction écrivant la saisie clavier sur écran
+void SerialToScreen ()
+{
+   // when characters arrive over the serial port...
+  if (Serial.available()) 
+  {
+    // wait a bit for the entire message to arrive
+    delay(100);
+    // clear the screen
+    lcd.clear();
+    // read all the available characters
+    while (Serial.available() > 0)
+    {
+      // display each character to the LCD
+      lcd.write(Serial.read());
+    }
+  }
+}
+
+  void AnalogToMap()
+  {
+    valPression = analogRead (PinBouton);
+    lcd.setCursor (2,0);
+    lcd.print ("9876543210");
+    lcd.setCursor (2,1);
+    lcd.print (valPression, BIN);
+    lcd.setCursor (2,2);
+    lcd.print (valPression);
+    lcd.setCursor (2,3);
+    rapport=valPression/92;   // rapport est int donc coupe automatiquement unité et dizaine pour ne concerver qu'un numero entre 10 et 0 (0 à 1023)
+    lcd.print (rapport);
+    lcd.print (" _ ");
+    valPression= map(valPression, 0,920, 0, 10);   // meme resultat en permettant une tolerance sur le 1024
+    lcd.print (valPression);
+  }
+
+  void VarLuminositeScreen()
+{ 
+ for (int luminosite=0;luminosite<255;luminosite=luminosite+10) 
+       {
+       lcd.setCursor (3,0);
+       lcd.print(luminosite);
+       Serial.print (luminosite);
+       Serial.print("-");
+       analogWrite(PinLuminosite, luminosite);
+       delay(100);
+       }
+ /*  
+  *   pour éteindre le retroeclairage
+ for (int i=0;i<6;i++)
+    {
+   delay (500);
+          lcd.noBacklight();
+  delay(500);
+  lcd.backlight();
+    }
+*/
+
+ 
+  }
+  
+/*
+  // ---------------  fonction gératrice de nombre aléatoire   -------------------------------------------
+ // il faut déclarer en début de prog :
+ //long randNumber;
+ 
+  // if analog input pin 0 is unconnected, random analog
+  // noise will cause the call to randomSeed() to generate
+  // different seed numbers each time the sketch runs.
+  // randomSeed() will then shuffle the random function.
+  randomSeed(analogRead(0));
+}
+
+void lecture ()
+{
+  
+void randomize()
+{
+  // print a random number from 0 to 299
+  randNumber = random(300);
+  Serial.println(randNumber);  
+  // print a random number from 10 to 19
+  randNumber = random(10, 20);
+  Serial.println(randNumber);
+  delay(50);
+}
+*/
